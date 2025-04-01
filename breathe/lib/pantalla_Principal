@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+import 'descripcion.dart';
+
+class PantallaPrincipal extends StatelessWidget {
+  const PantallaPrincipal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            const Text(
+              'BREATHE+',
+              style: TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Image.asset('assets/tierra.png', width: 250),
+            const SizedBox(height: 20),
+            const Text('REDUCE', style: TextStyle(fontSize: 20, fontFamily: 'Jost',color: Colors.white),), 
+            const Text('RESPIRA', style: TextStyle(fontSize: 20, fontFamily: 'Jost',color: Colors.white),), 
+            const Text('REVIVE', style: TextStyle(fontSize: 20, fontFamily: 'Jost',color: Colors.white),),  
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Descripcion()),
+                );
+              },
+              child: const Text(
+                'INICIAR',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+

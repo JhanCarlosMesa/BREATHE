@@ -2,8 +2,41 @@ import 'package:flutter/material.dart';
 import 'register.dart';
 import 'consultaPrincipal.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   const Login({super.key});
+
+  @override
+  _LoginState createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  String? _errorMessage;
+
+  void _validateAndLogin() {
+    setState(() {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      if (email.isEmpty || password.isEmpty) {
+        _errorMessage = 'Por favor complete todos los campos';
+      } else if (!email.contains('@') ||
+          !email.contains('.') ||
+          !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+        _errorMessage = 'Correo electrónico inválido';
+      } else if (password.length < 8) {
+        _errorMessage = 'La contraseña es invalida';
+      } else {
+        _errorMessage = null;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ConsultaPrincipal()),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +66,15 @@ class Login extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildTextField('Usuario'),
+              _buildTextField('Gmail', controller: _emailController),
               const SizedBox(height: 20),
-              _buildTextField('Contraseña', isPassword: true),
+              _buildTextField('Contraseña', controller: _passwordController, isPassword: true, showToggle: true),
               const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Olvidaste tú contraseña?',
-                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-                  ),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
                 ),
-              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -56,18 +84,13 @@ class Login extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 ),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ConsultaPrincipal()),
-                  );
-                },
+                onPressed: _validateAndLogin,
                 child: const Text(
                   'LOGIN',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 255, 255),
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -87,8 +110,11 @@ class Login extends StatelessWidget {
                       );
                     },
                     child: const Text(
-                      'Registraté ahora',
-                      style: TextStyle(color: Color.fromARGB(255, 112, 163, 205), fontWeight: FontWeight.bold),
+                      'Regístrate ahora',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 112, 163, 205),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -100,9 +126,15 @@ class Login extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String hintText, {bool isPassword = false}) {
+  Widget _buildTextField(
+    String hintText, {
+    required TextEditingController controller,
+    bool isPassword = false,
+    bool showToggle = false,
+  }) {
     return TextField(
-      obscureText: isPassword,
+      controller: controller,
+      obscureText: isPassword && _obscurePassword,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hintText,
@@ -114,7 +146,21 @@ class Login extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        suffixIcon: showToggle
+            ? IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              )
+            : null,
       ),
     );
   }
 }
+

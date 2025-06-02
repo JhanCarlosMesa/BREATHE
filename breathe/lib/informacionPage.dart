@@ -15,15 +15,20 @@ class InformacionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Información sobre IQA", style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center
-              ),
-        backgroundColor: const Color.fromARGB(255, 13, 91, 77),
+      backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context);
+        },
       ),
+      title: const Text(
+        'Información sobre IQA',
+        style: TextStyle(color: Colors.white),
+      ),
+      centerTitle: true,
+      elevation: 0,
+    ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

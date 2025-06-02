@@ -42,6 +42,21 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+      backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context); // Esto regresa a la pantalla anterior
+        },
+      ),
+      title: const Text(
+        'Consultar Temperatura',
+        style: TextStyle(color: Colors.white),
+      ),
+      centerTitle: true,
+      elevation: 0,
+    ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -58,15 +73,6 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
-              const Text(
-                'CONSULTAR TEMPERATURA',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 30),
               _buildTextField(_controladorLatitud, 'Latitud'),
               const SizedBox(height: 10),

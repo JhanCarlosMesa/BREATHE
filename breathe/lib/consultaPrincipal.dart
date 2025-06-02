@@ -9,6 +9,21 @@ class ConsultaPrincipal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+      backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      title: const Text(
+        'Consultas',
+        style: TextStyle(color: Colors.white),
+      ),
+      centerTitle: true,
+      elevation: 0,
+    ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -23,15 +38,6 @@ class ConsultaPrincipal extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
-            const Text(
-              'CONSULTA PRINCIPAL',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
             const SizedBox(height: 30),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

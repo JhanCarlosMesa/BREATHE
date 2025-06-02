@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; 
+import 'login.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -14,14 +14,22 @@ class _RegisterState extends State<Register> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
+  bool _obscurePassword = true;
 
   void _register() {
     setState(() {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
       if (_nameController.text.isEmpty ||
-          _emailController.text.isEmpty ||
+          email.isEmpty ||
           _dobController.text.isEmpty ||
-          _passwordController.text.isEmpty) {
+          password.isEmpty) {
         _errorMessage = "Por favor complete todos los datos";
+      } else if (!email.contains('@') || !email.contains('.') || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+        _errorMessage = "Correo electrónico inválido";
+      } else if (password.length < 8) {
+        _errorMessage = "La contraseña debe tener al menos 8 caracteres";
       } else {
         _errorMessage = null;
         Navigator.pushReplacement(
@@ -62,11 +70,14 @@ class _RegisterState extends State<Register> {
               const SizedBox(height: 30),
               _buildTextField('Nombre Completo', controller: _nameController),
               const SizedBox(height: 20),
-              _buildTextField('Gmail', controller: _emailController),
+              _buildTextField('Correo Electrónico', controller: _emailController),
               const SizedBox(height: 20),
               _buildTextField('Fecha de Nacimiento', controller: _dobController, isDate: true),
               const SizedBox(height: 20),
-              _buildTextField('Contraseña', controller: _passwordController, isPassword: true),
+              _buildTextField('Contraseña',
+                  controller: _passwordController,
+                  isPassword: true,
+                  showToggle: true),
               const SizedBox(height: 30),
               if (_errorMessage != null)
                 Text(
@@ -76,7 +87,7 @@ class _RegisterState extends State<Register> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 2, 64, 40), 
+                  backgroundColor: const Color.fromARGB(255, 2, 64, 40),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -99,11 +110,16 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget _buildTextField(String hintText,
-      {bool isPassword = false, bool isDate = false, required TextEditingController controller}) {
+  Widget _buildTextField(
+    String hintText, {
+    bool isPassword = false,
+    bool isDate = false,
+    bool showToggle = false,
+    required TextEditingController controller,
+  }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: isPassword && _obscurePassword,
       readOnly: isDate,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -128,14 +144,28 @@ class _RegisterState extends State<Register> {
                   );
                   if (pickedDate != null) {
                     setState(() {
-                      controller.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                      controller.text =
+                          "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
                     });
                   }
                 },
               )
-            : null,
+            : (showToggle
+                ? IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  )
+                : null),
       ),
     );
   }
 }
+
 

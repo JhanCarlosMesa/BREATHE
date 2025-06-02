@@ -15,32 +15,32 @@ class _ConsultaIQAState extends State<ConsultaIQA> {
   final TextEditingController controladorLatitud = TextEditingController();
   final TextEditingController controladorLongitud = TextEditingController();
   String resultado = "Ingresa las coordenadas o selecciona un punto en el mapa.";
-  LatLng ubicacionSeleccionada = LatLng(6.292509, -75.587929); 
+  LatLng ubicacionSeleccionada = LatLng(6.292509, -75.587929);
+  int aqiActual = 0;
 
   Future<void> consultarIQA() async {
     const String apiKey = '1eb7331556ee499fcf874cc3b0c1403c';
+    final lat = controladorLatitud.text.trim();
+    final lon = controladorLongitud.text.trim();
 
-    final String latitudTexto = controladorLatitud.text.trim();
-    final String longitudTexto = controladorLongitud.text.trim();
-
-    if (latitudTexto.isEmpty || longitudTexto.isEmpty) {
+    if (lat.isEmpty || lon.isEmpty) {
       setState(() {
         resultado = 'Por favor ingresa ambos valores: latitud y longitud.';
       });
       return;
     }
 
-    final double? latitud = double.tryParse(latitudTexto);
-    final double? longitud = double.tryParse(longitudTexto);
+    final double? latitud = double.tryParse(lat);
+    final double? longitud = double.tryParse(lon);
 
     if (latitud == null || longitud == null) {
       setState(() {
-        resultado = 'Latitud o longitud no son valores válidos. Ingresa números.';
+        resultado = 'Latitud o longitud no son valores válidos.';
       });
       return;
     }
 
-    final String url =
+    final url =
         'http://api.openweathermap.org/data/2.5/air_pollution?lat=$latitud&lon=$longitud&appid=$apiKey';
 
     try {
@@ -48,11 +48,11 @@ class _ConsultaIQAState extends State<ConsultaIQA> {
 
       if (respuesta.statusCode == 200) {
         final datos = json.decode(respuesta.body);
-
         final int aqi = datos['list'][0]['main']['aqi'];
-        final Map<String, dynamic> componentes = datos['list'][0]['components'];
+        final componentes = datos['list'][0]['components'];
 
         setState(() {
+          aqiActual = aqi;
           resultado = '''
 Coordenadas consultadas: ($latitud, $longitud)
 
@@ -60,18 +60,18 @@ Coordenadas consultadas: ($latitud, $longitud)
 
 Componentes:
 CO: ${componentes['co']} μg/m³ (Monóxido de Carbono)
-NO: ${componentes['no']} μg/m³ (Óxido Nítronico)
+NO: ${componentes['no']} μg/m³ (Óxido Nítrico)
 NO2: ${componentes['no2']} μg/m³ (Dióxido de Nitrógeno)
-O3: ${componentes['o3']} μg/m³ (Ozono (a nivel del suelo))
+O3: ${componentes['o3']} μg/m³ (Ozono)
 SO2: ${componentes['so2']} μg/m³ (Dióxido de Azufre)
-PM2.5: ${componentes['pm2_5']} μg/m³ (Partículas finas (menores a 2.5 micras))
-PM10: ${componentes['pm10']} μg/m³ (Partículas gruesas (menores a 10 micras))
+PM2.5: ${componentes['pm2_5']} μg/m³ (Partículas finas)
+PM10: ${componentes['pm10']} μg/m³ (Partículas gruesas)
 NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
           ''';
         });
       } else {
         setState(() {
-          resultado = 'Error al obtener los datos: Código ${respuesta.statusCode}';
+          resultado = 'Error: Código ${respuesta.statusCode}';
         });
       }
     } catch (e) {
@@ -89,27 +89,42 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
     });
   }
 
+  Color colorAQI(int aqi) {
+    switch (aqi) {
+      case 1:
+        return Colors.green.withOpacity(0.4);
+      case 2:
+        return Colors.yellow.withOpacity(0.4);
+      case 3:
+        return Colors.orange.withOpacity(0.4);
+      case 4:
+        return Colors.red.withOpacity(0.4);
+      case 5:
+        return Colors.purple.withOpacity(0.4);
+      default:
+        return Colors.grey.withOpacity(0.4);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Consulta IQA', style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center
-              ),
-        backgroundColor: const Color.fromARGB(255, 13, 91, 77),
+        backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Consultar IQA', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
       ),
       body: Container(
         padding: const EdgeInsets.all(15),
-        width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
+            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
           ),
         ),
         child: Column(
@@ -121,27 +136,38 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 400,
+              height: 350,
               child: FlutterMap(
                 options: MapOptions(
                   center: ubicacionSeleccionada,
                   zoom: 5,
-                  onTap: (tapPosition, point) {
-                    actualizarUbicacion(point);
-                  },
+                  onTap: (_, point) => actualizarUbicacion(point),
                 ),
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.example.breathe_more',
                   ),
+                  if (aqiActual > 0)
+                    CircleLayer(
+                      circles: [
+                        CircleMarker(
+                          point: ubicacionSeleccionada,
+                          radius: 60,
+                          color: colorAQI(aqiActual),
+                          useRadiusInMeter: false,
+                          borderColor: Colors.transparent,
+                          borderStrokeWidth: 0,
+                        ),
+                      ],
+                    ),
                   MarkerLayer(
                     markers: [
                       Marker(
-                        width: 80,
-                        height: 80,
                         point: ubicacionSeleccionada,
-                        child: const Icon(Icons.location_on, size: 40, color: Colors.red),
+                        width: 40,
+                        height: 40,
+                        child: const Icon(Icons.location_on, color: Colors.red, size: 40),
                       ),
                     ],
                   ),
@@ -154,26 +180,16 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
                 Expanded(
                   child: TextField(
                     controller: controladorLatitud,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      hintText: 'Latitud',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: _inputDecor('Latitud'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: controladorLongitud,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      hintText: 'Longitud',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: _inputDecor('Longitud'),
                   ),
                 ),
               ],
@@ -190,16 +206,65 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
             const SizedBox(height: 10),
             Expanded(
               child: SingleChildScrollView(
-                child: Text(
-                  resultado,
-                  style: const TextStyle(color: Colors.white),
-                ),
+                child: Text(resultado, style: const TextStyle(color: Colors.white)),
               ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => _mostrarReferencia(context),
+              child: const Text('Niveles de referencia'),
             ),
           ],
         ),
       ),
     );
   }
-}
 
+  InputDecoration _inputDecor(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  void _mostrarReferencia(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+        title: const Text('Niveles de calidad del aire', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _nivelColor('1. Bueno', Colors.green),
+            _nivelColor('2. Moderado', Colors.yellow),
+            _nivelColor('3. No saludable para grupos sensibles', Colors.orange),
+            _nivelColor('4. No saludable', Colors.red),
+            _nivelColor('5. Muy perjudicial', Colors.purple),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _nivelColor(String texto, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(width: 20, height: 20, color: color),
+          const SizedBox(width: 10),
+          Expanded(child: Text(texto, style: const TextStyle(color: Colors.white))),
+        ],
+      ),
+    );
+  }
+}

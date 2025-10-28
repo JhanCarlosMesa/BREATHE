@@ -5,7 +5,9 @@ class InformacionPage extends StatelessWidget {
   const InformacionPage({super.key});
 
   Future<void> _abrirEnlace() async {
-    final url = Uri.parse('https://www.kaggle.com/datasets/hasibalmuzdadid/global-air-pollution-dataset/data');
+    final url = Uri.parse(
+      'https://www.kaggle.com/datasets/hasibalmuzdadid/global-air-pollution-dataset/data',
+    );
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw 'No se pudo abrir el enlace';
     }
@@ -15,26 +17,29 @@ class InformacionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-      backgroundColor: const Color.fromARGB(255, 2, 76, 52),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () {
-          Navigator.pop(context);
-        },
+        backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Información sobre IQA',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        elevation: 0,
       ),
-      title: const Text(
-        'Información sobre IQA',
-        style: TextStyle(color: Colors.white),
-      ),
-      centerTitle: true,
-      elevation: 0,
-    ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
+            colors: [
+              Color.fromARGB(255, 13, 91, 77),
+              Color.fromARGB(255, 14, 158, 139),
+            ],
           ),
         ),
         child: SingleChildScrollView(
@@ -44,7 +49,11 @@ class InformacionPage extends StatelessWidget {
             children: [
               Text(
                 'Descripción',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               SizedBox(height: 8),
               Text(
@@ -57,7 +66,11 @@ class InformacionPage extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 'Contaminantes incluidos:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               SizedBox(height: 8),
               Text(
@@ -86,7 +99,11 @@ class InformacionPage extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 'Contenido del dataset',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               SizedBox(height: 8),
               Text(
@@ -117,7 +134,7 @@ class InformacionPage extends StatelessWidget {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import 'consultaPrincipal.dart';
 
 class Descripcion extends StatelessWidget {
   const Descripcion({super.key});
@@ -14,7 +14,10 @@ class Descripcion extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
+            colors: [
+              Color.fromARGB(255, 13, 91, 77),
+              Color.fromARGB(255, 14, 158, 139),
+            ],
           ),
         ),
         child: Padding(
@@ -61,7 +64,9 @@ class Descripcion extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const Login()),
+                      MaterialPageRoute(
+                        builder: (context) => const ConsultaPrincipal(),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.arrow_forward, color: Colors.white),
@@ -74,4 +79,3 @@ class Descripcion extends StatelessWidget {
     );
   }
 }
-

@@ -48,7 +48,10 @@ class _LoginState extends State<Login> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 13, 91, 77), Color.fromARGB(255, 14, 158, 139)],
+            colors: [
+              Color.fromARGB(255, 13, 91, 77),
+              Color.fromARGB(255, 14, 158, 139),
+            ],
           ),
         ),
         child: Padding(
@@ -68,7 +71,12 @@ class _LoginState extends State<Login> {
               const SizedBox(height: 30),
               _buildTextField('Gmail', controller: _emailController),
               const SizedBox(height: 20),
-              _buildTextField('Contraseña', controller: _passwordController, isPassword: true, showToggle: true),
+              _buildTextField(
+                'Contraseña',
+                controller: _passwordController,
+                isPassword: true,
+                showToggle: true,
+              ),
               const SizedBox(height: 10),
               if (_errorMessage != null)
                 Text(
@@ -82,7 +90,10 @@ class _LoginState extends State<Login> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 15,
+                  ),
                 ),
                 onPressed: _validateAndLogin,
                 child: const Text(
@@ -106,7 +117,9 @@ class _LoginState extends State<Login> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const Register()),
+                        MaterialPageRoute(
+                          builder: (context) => const Register(),
+                        ),
                       );
                     },
                     child: const Text(
@@ -145,22 +158,25 @@ class _LoginState extends State<Login> {
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        suffixIcon: showToggle
-            ? IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              )
-            : null,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 15,
+        ),
+        suffixIcon:
+            showToggle
+                ? IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                )
+                : null,
       ),
     );
   }
 }
-

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'coordenadas_guardadas.dart';
 
 class ConsultaTemperatura extends StatefulWidget {
   const ConsultaTemperatura({super.key});
@@ -18,6 +19,22 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
   String _mensajeComparacion = '';
   double? _ultimaTemperatura;
   LatLng ubicacionSeleccionada = LatLng(6.292509, -75.587929);
+  bool _mostrandoCoordenadasGuardadas = false;
+  List<Coordenada> _coordenadasGuardadas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCoordenadasGuardadas();
+  }
+
+  Future<void> _cargarCoordenadasGuardadas() async {
+    final coordenadas =
+        await CoordenadasGuardadas.obtenerCoordenadasTemperatura();
+    setState(() {
+      _coordenadasGuardadas = coordenadas;
+    });
+  }
 
   Future<void> obtenerTemperatura(double latitud, double longitud) async {
     try {
@@ -65,6 +82,50 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
       _controladorLatitud.text = nuevaUbicacion.latitude.toStringAsFixed(6);
       _controladorLongitud.text = nuevaUbicacion.longitude.toStringAsFixed(6);
     });
+  }
+
+  Future<void> _guardarCoordenadaActual() async {
+    final lat = double.tryParse(_controladorLatitud.text);
+    final lon = double.tryParse(_controladorLongitud.text);
+
+    if (lat != null && lon != null) {
+      final coordenada = Coordenada(
+        latitud: lat,
+        longitud: lon,
+        nombre: 'Coordenada ${_coordenadasGuardadas.length + 1}',
+      );
+
+      await CoordenadasGuardadas.guardarCoordenadaTemperatura(coordenada);
+      await _cargarCoordenadasGuardadas();
+
+      // Show a snackbar to confirm
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Coordenada guardada exitosamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  void _mostrarCoordenadasGuardadas() {
+    setState(() {
+      _mostrandoCoordenadasGuardadas = !_mostrandoCoordenadasGuardadas;
+    });
+  }
+
+  void _seleccionarCoordenadaGuardada(Coordenada coordenada) {
+    setState(() {
+      _controladorLatitud.text = coordenada.latitud.toStringAsFixed(6);
+      _controladorLongitud.text = coordenada.longitud.toStringAsFixed(6);
+      ubicacionSeleccionada = LatLng(coordenada.latitud, coordenada.longitud);
+      _mostrandoCoordenadasGuardadas = false;
+    });
+  }
+
+  void _eliminarCoordenadaGuardada(int index) async {
+    await CoordenadasGuardadas.eliminarCoordenadaTemperatura(index);
+    await _cargarCoordenadasGuardadas();
   }
 
   @override
@@ -145,21 +206,25 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
                 ),
               ),
               const SizedBox(height: 10),
-              _buildTextField(_controladorLatitud, 'Latitud'),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(_controladorLatitud, 'Latitud'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildTextField(_controladorLongitud, 'Longitud'),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    onPressed: _guardarCoordenadaActual,
+                    tooltip: 'Guardar coordenada',
+                  ),
+                ],
+              ),
               const SizedBox(height: 10),
-              _buildTextField(_controladorLongitud, 'Longitud'),
-              const SizedBox(height: 20),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 2, 76, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 15,
-                  ),
-                ),
                 onPressed: () {
                   final latitud = double.tryParse(_controladorLatitud.text);
                   final longitud = double.tryParse(_controladorLongitud.text);
@@ -172,6 +237,13 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
                     });
                   }
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 40,
+                  ),
+                ),
                 child: const Text(
                   'Consultar Temperatura',
                   style: TextStyle(
@@ -181,6 +253,82 @@ class _ConsultaTemperaturaState extends State<ConsultaTemperatura> {
                   ),
                 ),
               ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _mostrarCoordenadasGuardadas,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+                ),
+                child: const Text(
+                  'Coordenadas guardadas',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              if (_mostrandoCoordenadasGuardadas &&
+                  _coordenadasGuardadas.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Coordenadas guardadas:',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _coordenadasGuardadas.length,
+                        itemBuilder: (context, index) {
+                          final coordenada = _coordenadasGuardadas[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 5),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${coordenada.nombre}: ${coordenada.latitud.toStringAsFixed(4)}, ${coordenada.longitud.toStringAsFixed(4)}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed:
+                                      () => _seleccionarCoordenadaGuardada(
+                                        coordenada,
+                                      ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed:
+                                      () => _eliminarCoordenadaGuardada(index),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 20),
               Text(
                 _temperatura.isEmpty

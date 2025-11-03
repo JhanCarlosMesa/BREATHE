@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'coordenadas_guardadas.dart';
 
 class ConsultaIQA extends StatefulWidget {
   const ConsultaIQA({super.key});
@@ -21,6 +22,21 @@ class _ConsultaIQAState extends State<ConsultaIQA> {
   int aqiActual = 0;
   int? ultimoAqi;
   Map<String, double>? ultimosComponentes;
+  bool _mostrandoCoordenadasGuardadas = false;
+  List<Coordenada> _coordenadasGuardadas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCoordenadasGuardadas();
+  }
+
+  Future<void> _cargarCoordenadasGuardadas() async {
+    final coordenadas = await CoordenadasGuardadas.obtenerCoordenadasIQA();
+    setState(() {
+      _coordenadasGuardadas = coordenadas;
+    });
+  }
 
   Future<void> consultarIQA() async {
     const String apiKey = '1eb7331556ee499fcf874cc3b0c1403c';
@@ -216,6 +232,50 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
     );
   }
 
+  Future<void> _guardarCoordenadaActual() async {
+    final lat = double.tryParse(controladorLatitud.text);
+    final lon = double.tryParse(controladorLongitud.text);
+
+    if (lat != null && lon != null) {
+      final coordenada = Coordenada(
+        latitud: lat,
+        longitud: lon,
+        nombre: 'Coordenada ${_coordenadasGuardadas.length + 1}',
+      );
+
+      await CoordenadasGuardadas.guardarCoordenadaIQA(coordenada);
+      await _cargarCoordenadasGuardadas();
+
+      // Show a snackbar to confirm
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Coordenada guardada exitosamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  void _mostrarCoordenadasGuardadas() {
+    setState(() {
+      _mostrandoCoordenadasGuardadas = !_mostrandoCoordenadasGuardadas;
+    });
+  }
+
+  void _seleccionarCoordenadaGuardada(Coordenada coordenada) {
+    setState(() {
+      controladorLatitud.text = coordenada.latitud.toStringAsFixed(6);
+      controladorLongitud.text = coordenada.longitud.toStringAsFixed(6);
+      ubicacionSeleccionada = LatLng(coordenada.latitud, coordenada.longitud);
+      _mostrandoCoordenadasGuardadas = false;
+    });
+  }
+
+  void _eliminarCoordenadaGuardada(int index) async {
+    await CoordenadasGuardadas.eliminarCoordenadaIQA(index);
+    await _cargarCoordenadasGuardadas();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -322,6 +382,12 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
                       decoration: _inputDecor('Longitud'),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    onPressed: _guardarCoordenadaActual,
+                    tooltip: 'Guardar coordenada',
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -339,6 +405,82 @@ NH3: ${componentes['nh3']} μg/m³ (Amoniaco)
                   style: TextStyle(color: Colors.white),
                 ),
               ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _mostrarCoordenadasGuardadas,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 2, 76, 52),
+                ),
+                child: const Text(
+                  'Coordenadas guardadas',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              if (_mostrandoCoordenadasGuardadas &&
+                  _coordenadasGuardadas.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Coordenadas guardadas:',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _coordenadasGuardadas.length,
+                        itemBuilder: (context, index) {
+                          final coordenada = _coordenadasGuardadas[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 5),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${coordenada.nombre}: ${coordenada.latitud.toStringAsFixed(4)}, ${coordenada.longitud.toStringAsFixed(4)}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed:
+                                      () => _seleccionarCoordenadaGuardada(
+                                        coordenada,
+                                      ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed:
+                                      () => _eliminarCoordenadaGuardada(index),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 10),
               if (aqiActual > 0)
                 ElevatedButton(
